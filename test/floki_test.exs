@@ -182,6 +182,36 @@ defmodule FlokiTest do
     ]
   end
 
+  test "find first element (pseudo-class)" do
+    assert Floki.find(@html, "div.content a:first") == [
+      {"a", [
+          {"href", "http://google.com"},
+          {"class", "js-google js-cool"}],
+        ["Google"]}
+    ]
+  end
+
+  test "find last element (pseudo-class)" do
+    assert Floki.find(@html, "div.content a:last") == [
+      {"a", [
+          {"href", "http://java.com"},
+          {"class", "js-java"}],
+        ["Java"]}
+    ]
+  end
+
+  test "find decendant of first element (pseudo-class)" do
+    assert Floki.find(@xml, "channel:first link") == [
+      {"link", [], ["www.foo.bar.com"] }
+      ]
+  end
+
+  test "find decendant of last element (pseudo-class)" do
+    assert Floki.find(@xml, "channel:last link") == [
+      {"link", [], ["www.baz.com"] }
+      ]
+  end
+
   test "find elements with a given class in html_without_html_tag" do
     class_selector = ".js-cool"
 

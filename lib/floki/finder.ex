@@ -65,6 +65,10 @@ defmodule Floki.Finder do
                 traverse_sibling(children_nodes, sibling_nodes, combinator.selector, acc)
               :general_sibling ->
                 traverse_general_sibling(children_nodes, sibling_nodes, combinator.selector, acc)
+              :first ->
+                traverse_first(html_node, sibling_nodes, combinator.selector, acc)
+              :last ->
+                traverse_last(children_nodes, sibling_nodes, combinator.selector, acc)
               other ->
                 raise "Combinator of type \"#{other}\" not implemented"
             end
@@ -126,6 +130,41 @@ defmodule Floki.Finder do
         res_acc
       end
     end)
+  end
+
+  defp traverse_first(me, sibling_nodes, selector, acc) do
+    sibling_nodes = Enum.drop_while(sibling_nodes, &ignore_node?/1)
+
+    if Enum.empty?(acc) do # we are first element
+      case selector.combinator do
+        nil -> [me]
+        _   ->
+          {_, _, children_nodes} = me
+          traverse(children_nodes, sibling_nodes, selector.combinator.selector, [])
+      end
+    else # we are not first element, it was already found
+      acc
+    end
+  end
+
+  defp traverse_last(_children, sibling_nodes, selector, acc) do
+    sibling_nodes = Enum.drop_while(sibling_nodes, &ignore_node?/1)
+    last = List.last(sibling_nodes)
+
+    if Enum.empty?(sibling_nodes) do # we are last element
+      case selector.combinator do
+        nil -> acc
+        _   ->
+          {_, _, children_nodes} = List.last(acc)
+          traverse(children_nodes, sibling_nodes, selector.combinator.selector, [])
+      end
+    else # we are not last element, store last for later ^^
+      if Enum.empty?(acc) do
+        [last]
+      else
+        acc
+      end
+    end
   end
 
   defp ignore_node?({:comment, _}), do: true

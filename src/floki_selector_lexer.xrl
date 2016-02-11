@@ -12,6 +12,8 @@ Rules.
 {SYMBOL}         : {token, {TokenChars, TokenLine}}.
 #{IDENTIFIER}    : {token, {hash, TokenLine, tail(TokenChars)}}.
 \.{IDENTIFIER}   : {token, {class, TokenLine, tail(TokenChars)}}.
+:first           : {token, {pseudo_first, TokenLine}}.
+:last            : {token, {pseudo_last, TokenLine}}.
 ~=               : {token, {includes, TokenLine}}.
 \|=              : {token, {dash_match, TokenLine}}.
 \^=              : {token, {prefix_match, TokenLine}}.
