@@ -68,7 +68,7 @@ defmodule Floki.Finder do
               :first ->
                 traverse_first(html_node, sibling_nodes, combinator.selector, acc)
               :last ->
-                traverse_last(children_nodes, sibling_nodes, combinator.selector, acc)
+                traverse_last(html_node, sibling_nodes, combinator.selector, acc)
               other ->
                 raise "Combinator of type \"#{other}\" not implemented"
             end
@@ -147,20 +147,19 @@ defmodule Floki.Finder do
     end
   end
 
-  defp traverse_last(_children, sibling_nodes, selector, acc) do
+  defp traverse_last(me, sibling_nodes, selector, acc) do
     sibling_nodes = Enum.drop_while(sibling_nodes, &ignore_node?/1)
-    last = List.last(sibling_nodes)
 
     if Enum.empty?(sibling_nodes) do # we are last element
       case selector.combinator do
-        nil -> acc
+        nil -> [me]
         _   ->
-          {_, _, children_nodes} = List.last(acc)
+          {_, _, children_nodes} = me
           traverse(children_nodes, sibling_nodes, selector.combinator.selector, [])
       end
     else # we are not last element, store last for later ^^
       if Enum.empty?(acc) do
-        [last]
+        [me]
       else
         acc
       end
