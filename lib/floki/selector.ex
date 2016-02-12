@@ -6,7 +6,7 @@ defmodule Floki.Selector do
   alias Floki.Selector
   alias Floki.AttributeSelector
 
-  defstruct id: nil, type: nil, classes: [], attributes: [], combinator: nil
+  defstruct id: nil, type: nil, classes: [], attributes: [], combinator: nil, pseudo: nil
 
   @doc """
   Returns if a given node matches with a given selector.

@@ -31,14 +31,10 @@ defmodule Floki.SelectorParser do
     parse(t, %{selector | classes: [to_string(class)|selector.classes]})
   end
   defp parse([{:pseudo_first, _}|t], selector) do
-    {t, combinator} = consume_combinator(t, :first)
-
-    parse(t, %{selector | combinator: combinator})
+    parse(t, %{selector | pseudo: :first})
   end
   defp parse([{:pseudo_last, _}|t], selector) do
-    {t, combinator} = consume_combinator(t, :last)
-
-    parse(t, %{selector | combinator: combinator})
+    parse(t, %{selector | pseudo: :last})
   end
   defp parse([{'[', _}|t], selector) do
       {t, result} = consume_attribute(t)

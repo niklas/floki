@@ -41,6 +41,18 @@ defmodule Floki.Finder do
   defp traverse({:comment, _comment}, _, _, acc), do: acc
   defp traverse({:pi, _xml, _xml_attrs}, _, _, acc), do: acc
   defp traverse({:pi, _php_script}, _, _, acc), do: acc
+  defp traverse(nodes, _, [%Selector{pseudo: :first}|_]=selectors, acc) when is_list(nodes) do
+    traverse_first(nodes, selectors, acc)
+  end
+  defp traverse(nodes, _, %Selector{pseudo: :first}=selector, acc)      when is_list(nodes) do
+    traverse_first(nodes, selector, acc)
+  end
+  defp traverse(nodes, _, [%Selector{pseudo: :last}|_]=selectors, acc)  when is_list(nodes) do
+    traverse_last(nodes, selectors, acc)
+  end
+  defp traverse(nodes, _, %Selector{pseudo: :last}=selector, acc)       when is_list(nodes) do
+    traverse_last(nodes, selector, acc)
+  end
   defp traverse([html_node|sibling_nodes], _, selectors, acc) do
     acc = traverse(html_node, sibling_nodes, selectors, acc)
     traverse(sibling_nodes, [], selectors, acc)
@@ -65,10 +77,6 @@ defmodule Floki.Finder do
                 traverse_sibling(children_nodes, sibling_nodes, combinator.selector, acc)
               :general_sibling ->
                 traverse_general_sibling(children_nodes, sibling_nodes, combinator.selector, acc)
-              :first ->
-                traverse_first(html_node, sibling_nodes, combinator.selector, acc)
-              :last ->
-                traverse_last(html_node, sibling_nodes, combinator.selector, acc)
               other ->
                 raise "Combinator of type \"#{other}\" not implemented"
             end
@@ -132,37 +140,21 @@ defmodule Floki.Finder do
     end)
   end
 
-  defp traverse_first(me, sibling_nodes, selector, acc) do
-    sibling_nodes = Enum.drop_while(sibling_nodes, &ignore_node?/1)
-
-    if Enum.empty?(acc) do # we are first element
-      case selector.combinator do
-        nil -> [me]
-        _   ->
-          {_, _, children_nodes} = me
-          traverse(children_nodes, sibling_nodes, selector.combinator.selector, [])
-      end
-    else # we are not first element, it was already found
-      acc
+  def traverse_first(nodes, selectors, acc) do
+    first = nodes
+      |> Enum.find( fn(n)-> !ignore_node?(n) end)
+    case first do
+      nil -> acc
+      _   -> traverse(first, [], selectors, acc)
     end
   end
-
-  defp traverse_last(me, sibling_nodes, selector, acc) do
-    sibling_nodes = Enum.drop_while(sibling_nodes, &ignore_node?/1)
-
-    if Enum.empty?(sibling_nodes) do # we are last element
-      case selector.combinator do
-        nil -> [me]
-        _   ->
-          {_, _, children_nodes} = me
-          traverse(children_nodes, sibling_nodes, selector.combinator.selector, [])
-      end
-    else # we are not last element, store last for later ^^
-      if Enum.empty?(acc) do
-        [me]
-      else
-        acc
-      end
+  def traverse_last(nodes, selectors, acc) do
+    last = nodes
+      |> Enum.reverse
+      |> Enum.find( fn(n)-> !ignore_node?(n) end)
+    case last do
+      nil -> acc
+      _   -> traverse(last, [], selectors, acc)
     end
   end
 
